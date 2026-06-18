@@ -15,13 +15,11 @@ import (
 // costcenterCmd represents the costcenter command
 var costcenterCmd = &cobra.Command{
 	Use:   "costcenter",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "List users and their cost center assignments",
+	Long: `List all users in the enterprise and their cost center assignments.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+By default, shows all users. Use --only-none to show only users without a cost center,
+or --cost-center to filter by a specific cost center name.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		c, err := github.NewClient()
 		if err != nil {
@@ -29,7 +27,10 @@ to quickly create a Cobra application.`,
 			return
 		}
 
-		users, err := github.GetUsersMissingCC(c, "soprasteriasca")
+		onlyNone, _ := cmd.Flags().GetBool("only-none")
+		filterCC, _ := cmd.Flags().GetString("cost-center")
+
+		users, err := github.GetUsersMissingCC(c, "soprasteriasca", onlyNone, filterCC)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -47,13 +48,6 @@ to quickly create a Cobra application.`,
 func init() {
 	enterpriseCmd.AddCommand(costcenterCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// costcenterCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// costcenterCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	costcenterCmd.Flags().Bool("only-none", false, "Show only users without a cost center assigned")
+	costcenterCmd.Flags().String("cost-center", "", "Filter users by specific cost center name")
 }

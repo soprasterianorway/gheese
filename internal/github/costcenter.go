@@ -13,7 +13,7 @@ type UserCostCenter struct {
 	CostCenter string
 }
 
-func GetUsersMissingCC(c *github.Client, ent string) ([]UserCostCenter, error) {
+func GetUsersMissingCC(c *github.Client, ent string, onlyNone bool, filterCC string) ([]UserCostCenter, error) {
 	context := context.Background()
 
 	l, _, err := c.Enterprise.GetConsumedLicenses(context, ent, nil)
@@ -38,6 +38,14 @@ func GetUsersMissingCC(c *github.Client, ent string) ([]UserCostCenter, error) {
 		costcenter := resourceCostCenters[u.GithubComLogin]
 		if costcenter == "" {
 			costcenter = "none"
+		}
+
+		// Apply filters
+		if onlyNone && costcenter != "none" {
+			continue
+		}
+		if filterCC != "" && costcenter != filterCC {
+			continue
 		}
 
 		users = append(users, UserCostCenter{
