@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.0](https://github.com/soprasterianorway/gheese/compare/gheese-v0.4.0...gheese-v0.5.0) (2026-06-30)
+
+
+### Features
+
+* **cc:** add filters ([683745d](https://github.com/soprasterianorway/gheese/commit/683745d1647095cc94b98e6325c9ab85707739b4))
+
+
+### Bug Fixes
+
+* **cc:** wrong results ([fb1ab52](https://github.com/soprasterianorway/gheese/commit/fb1ab52003fa51a561f2a252db75d9b3159d17f2))
+
 ## [0.4.0](https://github.com/soprasterianorway/gheese/compare/gheese-v0.3.0...gheese-v0.4.0) (2026-04-21)
 
 
