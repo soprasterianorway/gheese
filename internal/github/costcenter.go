@@ -14,18 +14,30 @@ type UserCostCenter struct {
 }
 
 func GetUsersMissingCC(c *github.Client, ent string, onlyNone bool, filterCC string) ([]UserCostCenter, error) {
-	context := context.Background()
+	ctx := context.Background()
 
-	l, _, err := c.Enterprise.GetConsumedLicenses(context, ent, nil)
-	if err != nil {
-		return nil, fmt.Errorf("get consumed licenses: %w", err)
+	// Fetch all consumed licenses with pagination
+	allUsers := []*github.EnterpriseLicensedUsers{}
+	opts := &github.ListOptions{PerPage: 100}
+	for {
+		l, resp, err := c.Enterprise.GetConsumedLicenses(ctx, ent, opts)
+		if err != nil {
+			return nil, fmt.Errorf("get consumed licenses: %w", err)
+		}
+		allUsers = append(allUsers, l.Users...)
+		if resp.NextPage == 0 {
+			break
+		}
+		opts.Page = resp.NextPage
 	}
 
-	cc, _, err := c.Enterprise.ListCostCenters(context, ent, nil)
+	// Fetch all cost centers (no pagination for this API)
+	cc, _, err := c.Enterprise.ListCostCenters(ctx, ent, nil)
 	if err != nil {
 		return nil, fmt.Errorf("list cost centers: %w", err)
 	}
 
+	// Build map of user login to cost center name
 	resourceCostCenters := make(map[string]string)
 	for _, center := range cc.CostCenters {
 		for _, resource := range center.Resources {
@@ -33,8 +45,8 @@ func GetUsersMissingCC(c *github.Client, ent string, onlyNone bool, filterCC str
 		}
 	}
 
-	users := make([]UserCostCenter, 0, len(l.Users))
-	for _, u := range l.Users {
+	users := make([]UserCostCenter, 0, len(allUsers))
+	for _, u := range allUsers {
 		costcenter := resourceCostCenters[u.GithubComLogin]
 		if costcenter == "" {
 			costcenter = "none"
